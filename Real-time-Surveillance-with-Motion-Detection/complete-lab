@@ -1,0 +1,89 @@
+Lab 2: Real-time Surveillance with Motion Detection
+Objective
+Capture live video from your webcam and implement motion detection using background subtraction in OpenCV — all on your local Ubuntu machine without cloud connectivity.
+
+Prerequisites
+Start your Al Nafi-provided Ubuntu machine
+
+Ensure Python and OpenCV are installed:
+
+pip install opencv-python
+sudo apt install python3-opencv -y
+Make sure your machine has a webcam connected and recognized. You can test it using:
+
+cheese
+Steps
+Step 1: Capture Video Feed from Webcam
+Create a working directory and script:
+
+mkdir -p ~/opencv-surveillance-lab
+cd ~/opencv-surveillance-lab
+nano motion_detection.py
+Add this basic webcam capture code:
+
+import cv2
+
+cap = cv2.VideoCapture(0)  # 0 = default webcam
+
+if not cap.isOpened():
+    print("Cannot open webcam")
+    exit()
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    cv2.imshow('Webcam Feed', frame)
+
+    # Exit on pressing 'q'
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+Run the script:
+
+python3 motion_detection.py
+Press q to exit the video stream.
+
+Step 2: Add Motion Detection with Background Subtraction
+Update motion_detection.py with background subtraction logic:
+
+import cv2
+
+cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    print("Cannot open webcam")
+    exit()
+
+# Create background subtractor
+fgbg = cv2.createBackgroundSubtractorMOG2()
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    # Apply background subtraction
+    fgmask = fgbg.apply(frame)
+
+    # Show original frame and mask
+    cv2.imshow('Live Feed', frame)
+    cv2.imshow('Motion Mask', fgmask)
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+Conclusion
+In this lab, you:
+
+Captured live video from your webcam using OpenCV
+
+Applied background subtraction to detect motion in real-time
+
+Displayed both the raw video and motion mask for surveillance simulation
+
+This practical exercise gives you hands-on experience in building a foundational surveillance tool — all offline on your Al Nafi-provided Ubuntu system.
