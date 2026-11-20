@@ -1,0 +1,91 @@
+Lab 3: Face Detection for Cybersecurity Applications
+Objective
+Use OpenCV's Haar cascade classifiers to detect human faces in static images and real-time webcam feeds, enabling the foundation for face-based authentication or surveillance — all locally without cloud access.
+
+Prerequisites
+Start your Al Nafi-provided Ubuntu machine
+
+Make sure the following are installed:
+
+pip install opencv-python
+sudo apt install python3-opencv -y
+Haar cascade files are included with OpenCV. Path:
+/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml
+
+Steps
+Step 1: Detect Faces in an Image
+Create a working directory:
+
+mkdir -p ~/opencv-face-lab
+cd ~/opencv-face-lab
+Place a sample image in this folder (e.g., face.jpg).
+
+Create face_image_detect.py:
+
+import cv2
+
+# Load Haar cascade
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+
+# Load image
+image = cv2.imread("face.jpg")
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Detect faces
+faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5)
+
+for (x, y, w, h) in faces:
+    cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+# Show image
+cv2.imshow("Face Detection", image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+Run the script:
+
+python3 face_image_detect.py
+Step 2: Detect Faces in a Live Webcam Feed
+Create face_video_detect.py:
+
+import cv2
+
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+cap = cv2.VideoCapture(0)
+
+if not cap.isOpened():
+    print("Cannot open webcam")
+    exit()
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5)
+
+    for (x, y, w, h) in faces:
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+    cv2.imshow("Live Face Detection", frame)
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+Run the script:
+
+python3 face_video_detect.py
+Press q to stop the video feed.
+
+Conclusion
+In this lab, you:
+
+Used Haar cascades to detect faces in a static image
+
+Extended the solution to real-time face detection via webcam
+
+Built a working local face detection system for cybersecurity applications like surveillance or access control
+
+This hands-on lab sets the stage for advanced facial recognition and tracking — all offline on your Ubuntu machine.
