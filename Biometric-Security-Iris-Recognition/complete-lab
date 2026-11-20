@@ -1,0 +1,127 @@
+Lab 4: Biometric Security – Iris Recognition
+Objective
+Capture high-resolution eye images using a webcam, apply segmentation to isolate the iris region, and implement basic feature extraction for simulated biometric matching — all on your local Ubuntu machine without internet or cloud dependency.
+
+Prerequisites
+Start your Al Nafi-provided Ubuntu machine
+
+Ensure the following tools are installed:
+
+pip install opencv-python numpy
+sudo apt install python3-opencv -y
+A webcam with decent resolution (720p or higher) for eye capture
+
+Controlled lighting for clearer iris images
+
+Steps
+Step 1: Capture High-Resolution Eye Image
+Create a working directory:
+
+mkdir -p ~/iris-recognition-lab
+cd ~/iris-recognition-lab
+Create a script capture_eye.py:
+
+import cv2
+
+cap = cv2.VideoCapture(0)
+
+if not cap.isOpened():
+    print("Cannot open webcam")
+    exit()
+
+print("Press 's' to save an image of your eye.")
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    cv2.imshow("Eye Capture", frame)
+
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord('s'):
+        cv2.imwrite("eye.jpg", frame)
+        print("Image saved as eye.jpg")
+        break
+    elif key == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+Run it and press s when the eye is centered:
+
+python3 capture_eye.py
+Step 2: Segment the Iris from the Captured Image
+Create segment_iris.py:
+
+import cv2
+import numpy as np
+
+# Load eye image
+image = cv2.imread("eye.jpg")
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+blurred = cv2.GaussianBlur(gray, (7, 7), 0)
+
+# Use Hough Circles to detect the iris (approximated as a dark circle)
+circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, dp=1.2, minDist=100,
+                           param1=100, param2=30, minRadius=20, maxRadius=60)
+
+if circles is not None:
+    circles = np.uint16(np.around(circles))
+    for (x, y, r) in circles[0, :1]:  # Use first detected circle
+        cv2.circle(image, (x, y), r, (0, 255, 0), 2)
+        iris = gray[y - r:y + r, x - r:x + r]
+        cv2.imwrite("isolated_iris.jpg", iris)
+        print("Iris segmented and saved as isolated_iris.jpg")
+else:
+    print("No iris detected.")
+
+cv2.imshow("Iris Detection", image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+Run the script:
+
+python3 segment_iris.py
+Step 3: Feature Extraction for Matching (Simple Histogram-Based)
+Create extract_features.py:
+
+import cv2
+import numpy as np
+
+iris = cv2.imread("isolated_iris.jpg", 0)
+
+if iris is None:
+    print("Iris image not found.")
+    exit()
+
+# Resize to a fixed size
+iris = cv2.resize(iris, (64, 64))
+
+# Compute histogram as feature vector
+hist = cv2.calcHist([iris], [0], None, [256], [0, 256])
+hist = cv2.normalize(hist, hist).flatten()
+
+# Save feature vector
+np.save("iris_features.npy", hist)
+print("Feature vector saved as iris_features.npy")
+To compare two irises:
+
+import numpy as np
+from scipy.spatial.distance import cosine
+
+f1 = np.load("iris_features.npy")
+f2 = np.load("another_iris_features.npy")  # Use a second sample
+
+similarity = 1 - cosine(f1, f2)
+print("Similarity Score:", similarity)
+Conclusion
+In this lab, you:
+
+Captured high-resolution eye images from a webcam
+
+Isolated the iris using Hough Circle detection and preprocessing
+
+Extracted features using a simple histogram-based method for biometric comparison
+
+This lab forms the foundation for building more advanced iris recognition systems in cybersecurity — all fully offline on your Ubuntu machine.
+
