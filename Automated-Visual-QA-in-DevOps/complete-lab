@@ -1,0 +1,93 @@
+Lab 6: Automated Visual QA in DevOps
+Objective
+Integrate automated visual quality assurance (QA) using Selenium into a local CI/CD pipeline with Jenkins. This simulates automated visual testing during deployment — entirely offline.
+
+Prerequisites
+Start your Al Nafi-provided Ubuntu machine
+
+Install the following:
+
+Jenkins:
+sudo apt update
+sudo apt install jenkins -y
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+Access Jenkins at: http://localhost:8080
+
+Java (required by Jenkins):
+sudo apt install default-jre -y
+Python & Selenium:
+pip install selenium
+Install Chrome and Chromedriver:
+sudo apt install chromium-browser chromium-chromedriver -y
+Verify:
+
+chromium-browser --version
+chromedriver --version
+Steps
+Step 1: Create a Simple Visual QA Test with Selenium
+Create a directory for the test:
+
+mkdir -p ~/visual-qa-lab
+cd ~/visual-qa-lab
+Create a test script visual_check.py:
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+options = Options()
+options.add_argument('--headless')
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-dev-shm-usage')
+
+driver = webdriver.Chrome(options=options)
+driver.get("https://example.com")  # Use any internal/test site here
+
+title = driver.title
+if "Example" in title:
+    print("Page title check passed.")
+else:
+    print("Page title check failed!")
+
+screenshot = "screenshot.png"
+driver.save_screenshot(screenshot)
+print(f"Screenshot saved as {screenshot}")
+
+driver.quit()
+Run and test locally:
+
+python3 visual_check.py
+Step 2: Set Up Jenkins to Run Visual QA Script
+Open Jenkins at http://localhost:8080
+
+Log in and create a Freestyle Project: Visual_QA_Pipeline
+
+Under Build Steps, choose "Execute Shell", and add:
+
+cd ~/visual-qa-lab
+python3 visual_check.py
+Save and build the project
+
+Check console output and confirm:
+
+Page title check passed
+
+Screenshot was saved
+
+Optional Enhancements
+Use git to pull test code into Jenkins
+
+Store test reports or screenshots in a specific folder
+
+Extend the test to compare screenshots using Pillow or OpenCV for pixel difference
+
+Conclusion
+In this lab, you:
+
+Built a local CI/CD pipeline with Jenkins
+
+Integrated Selenium to perform visual checks on a web application
+
+Captured and saved screenshots as part of automated QA
+
+This offline lab simulates real-world DevOps pipelines where visual testing is essential for UI validation — fully executable on your Ubuntu-based development environment.
