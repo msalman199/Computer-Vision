@@ -1,0 +1,85 @@
+Lab 7: SysOps System Health Monitoring with Thermal Imaging
+Objective
+Use thermal imaging to analyze the health of running systems by processing thermal images, detecting hot zones (anomalies), and flagging potential hardware failures — all on your local Ubuntu machine.
+
+Prerequisites
+Start your Al Nafi-provided Ubuntu machine
+
+Ensure the following tools are installed:
+
+pip install opencv-python numpy matplotlib
+You’ll need thermal images (either from a real thermal camera or simulated grayscale heatmaps). You can generate mock images if hardware isn’t available.
+
+Steps
+Step 1: Collect or Simulate Thermal Images
+Option A: Real Thermal Images
+If using a USB thermal camera (e.g., FLIR), capture thermal frames using provided tools or Python wrappers.
+Option B: Simulated Thermal Images
+Download or create grayscale heatmap images.
+
+Place them in a folder like ~/thermal-lab/images/.
+
+Step 2: Load and Visualize Thermal Images
+Create working folder and script:
+
+mkdir -p ~/thermal-lab
+cd ~/thermal-lab
+nano analyze_thermal.py
+Add code to load and display a thermal image:
+
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+image_path = "images/thermal1.jpg"  # Replace with your actual image
+img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+if img is None:
+    print("Image not found.")
+    exit()
+
+plt.imshow(img, cmap='inferno')
+plt.title("Thermal Image")
+plt.colorbar(label='Temperature Intensity')
+plt.show()
+Run the script:
+
+python3 analyze_thermal.py
+Step 3: Detect Heat Anomalies (Hotspots)
+Extend the script to detect hotspots:
+
+# Threshold to find hot zones
+threshold = 200  # Adjust based on your image scale (0-255)
+_, hot_mask = cv2.threshold(img, threshold, 255, cv2.THRESH_BINARY)
+
+# Find contours (hot regions)
+contours, _ = cv2.findContours(hot_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+img_color = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+for cnt in contours:
+    x, y, w, h = cv2.boundingRect(cnt)
+    cv2.rectangle(img_color, (x, y), (x+w, y+h), (0, 0, 255), 2)
+
+cv2.imshow("Detected Hotspots", img_color)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+Step 4: Predict Failure Based on Heat Intensity
+Add basic logic to simulate hardware warning:
+
+if len(contours) >= 2:
+    print("⚠️  Warning: Multiple hotspots detected. Possible overheating risk.")
+elif len(contours) == 1:
+    print("⚠️  One hotspot detected. Monitor the component.")
+else:
+    print("✅  No critical heat anomalies detected.")
+Conclusion
+In this lab, you:
+
+Used thermal images (real or simulated) for system health monitoring
+
+Visualized temperature distributions as heatmaps
+
+Detected abnormal hotspots using thresholding and contour detection
+
+Simulated alerts for proactive SysOps maintenance
+
+This offline lab equips you with the fundamentals of thermal-based diagnostics for hardware health — using only your Ubuntu machine and OpenCV.
