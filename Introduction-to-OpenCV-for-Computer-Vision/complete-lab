@@ -1,0 +1,75 @@
+Lab 1: Introduction to OpenCV for Computer Vision
+Objective
+Install OpenCV and gain hands-on experience with basic image processing tasks such as loading, displaying, saving, color conversion, and transformations using only your local Ubuntu machine.
+
+Prerequisites
+Start your Al Nafi-provided Ubuntu machine
+
+Ensure Python 3.8+ is installed
+
+Install OpenCV using pip:
+
+pip install opencv-python
+If you also want OpenCV with GUI support (cv2.imshow()), ensure the following package is installed:
+
+sudo apt install python3-opencv -y
+Steps
+Step 1: Load and Display an Image
+Create a working folder and script:
+
+mkdir -p ~/opencv-lab
+cd ~/opencv-lab
+nano basic_opencv.py
+Paste the following Python code:
+
+import cv2
+
+# Load an image
+image = cv2.imread("sample.jpg")  # Make sure sample.jpg is in the same folder
+if image is None:
+    print("Image not found.")
+    exit()
+
+# Display the image
+cv2.imshow("Original Image", image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+Add a sample image:
+
+Copy any image into the ~/opencv-lab folder and rename it to sample.jpg, or
+
+Download one offline via USB if needed.
+
+Run the script:
+
+python3 basic_opencv.py
+Step 2: Save the Image
+Extend your script to save a copy:
+
+cv2.imwrite("output.jpg", image)
+print("Image saved as output.jpg")
+Step 3: Color Conversion and Transformations
+Extend the script to include grayscale conversion and resizing:
+
+# Convert to grayscale
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+cv2.imshow("Grayscale Image", gray)
+cv2.imwrite("grayscale.jpg", gray)
+
+# Resize the image
+resized = cv2.resize(image, (200, 200))
+cv2.imshow("Resized Image", resized)
+cv2.imwrite("resized.jpg", resized)
+
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+Conclusion
+In this lab, you:
+
+Installed and configured OpenCV on your Ubuntu machine
+
+Loaded, displayed, and saved images using Python
+
+Performed basic transformations: grayscale conversion and resizing
+
+This foundational practice introduces you to core computer vision workflows using OpenCV — without any cloud dependency.
