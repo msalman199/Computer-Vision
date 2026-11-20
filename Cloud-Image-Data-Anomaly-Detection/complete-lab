@@ -1,0 +1,87 @@
+Lab 5: Cloud Image Data Anomaly Detection
+Objective
+Simulate a cloud-based image anomaly detection system by storing sample image data using MinIO (a self-hosted S3-compatible storage system), then applying image similarity techniques with OpenCV to detect anomalies — all locally without internet or AWS/GCP.
+
+Prerequisites
+Start your Al Nafi-provided Ubuntu machine
+
+Ensure the following tools are installed:
+
+pip install opencv-python numpy
+sudo apt install wget unzip
+Download and install MinIO:
+
+wget https://dl.min.io/server/minio/release/linux-amd64/minio
+chmod +x minio
+sudo mv minio /usr/local/bin/
+Steps
+Step 1: Set Up a Local Cloud Storage System (MinIO)
+Create a data directory and run MinIO server:
+
+mkdir -p ~/minio-data
+export MINIO_ROOT_USER=minioadmin
+export MINIO_ROOT_PASSWORD=minioadmin
+minio server ~/minio-data --console-address ":9001"
+Open your browser and access MinIO:
+
+Console: http://localhost:9001
+
+Login with:
+
+Username: minioadmin
+
+Password: minioadmin
+
+Create a bucket (e.g., imagedata) and upload a few sample .jpg or .png images, including one or two unusual ones (anomalies).
+
+Step 2: Download Images from MinIO for Processing
+Install MinIO client:
+
+wget https://dl.min.io/client/mc/release/linux-amd64/mc
+chmod +x mc
+sudo mv mc /usr/local/bin/
+Configure client and download images:
+
+mc alias set localminio http://localhost:9000 minioadmin minioadmin
+mc ls localminio/imagedata
+mc cp --recursive localminio/imagedata ~/minio-images
+Step 3: Perform Image Similarity-Based Anomaly Detection
+Create a Python script detect_anomalies.py:
+
+import cv2
+import os
+import numpy as np
+
+def compute_histogram(image_path):
+    image = cv2.imread(image_path)
+    image = cv2.resize(image, (128, 128))
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    hist = cv2.calcHist([hsv], [0, 1], None, [50, 60], [0, 180, 0, 256])
+    hist = cv2.normalize(hist, hist).flatten()
+    return hist
+
+image_dir = "minio-images"
+image_files = [os.path.join(image_dir, f) for f in os.listdir(image_dir) if f.endswith(('.jpg', '.png'))]
+
+base_hist = compute_histogram(image_files[0])  # Use first image as baseline
+print("Baseline image:", image_files[0])
+
+for img_path in image_files[1:]:
+    hist = compute_histogram(img_path)
+    score = cv2.compareHist(base_hist, hist, cv2.HISTCMP_CORREL)
+    print(f"{img_path} - Similarity: {score:.3f}")
+    if score < 0.7:
+        print(">> Potential Anomaly Detected!")
+Run the script:
+
+python3 detect_anomalies.py
+Conclusion
+In this lab, you:
+
+Set up MinIO to simulate cloud storage for images
+
+Uploaded and accessed image datasets as if working on AWS S3
+
+Applied OpenCV histogram comparison to detect anomalies in images based on similarity scores
+
+This local setup mimics real-world cloud anomaly detection pipelines and reinforces cloud storage integration with computer vision — fully offline on your Ubuntu system.
