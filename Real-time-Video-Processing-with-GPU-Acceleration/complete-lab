@@ -1,0 +1,106 @@
+Video
+Lab Material
+Lab 10: Real-time Video Processing with GPU Acceleration
+Objective
+Set up a GPU-enabled deep learning environment using TensorFlow and OpenCV, implement a real-time video processing task (e.g., object detection or image filtering), and compare CPU vs GPU performance.
+
+Prerequisites
+Start your Al Nafi-provided Ubuntu machine
+
+Ensure you have an NVIDIA GPU (optional for GPU acceleration)
+
+Install required libraries:
+
+Install OpenCV and TensorFlow (CPU version):
+pip install opencv-python numpy tensorflow
+Optional: TensorFlow with GPU Support (only if you have GPU)
+Skip if no GPU is available, or if you're unsure.
+
+Install NVIDIA driver:
+sudo ubuntu-drivers devices
+sudo apt install nvidia-driver-<version>  # Use recommended version
+Install CUDA and cuDNN (offline installers may be required if no internet)
+
+Then install TensorFlow GPU:
+
+pip install tensorflow
+To test GPU availability:
+
+import tensorflow as tf
+print("Num GPUs Available:", len(tf.config.list_physical_devices('GPU')))
+Steps
+Step 1: Create a Real-Time Video Processing Script
+Create working folder and script:
+mkdir -p ~/gpu-video-lab
+cd ~/gpu-video-lab
+nano realtime_gpu_filter.py
+Add a real-time video processing example (Gaussian blur with timing):
+import cv2
+import time
+import numpy as np
+import tensorflow as tf
+
+use_gpu = len(tf.config.list_physical_devices('GPU')) > 0
+print("Using GPU:", use_gpu)
+
+cap = cv2.VideoCapture(0)
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    # Resize for consistent processing
+    frame = cv2.resize(frame, (640, 480))
+
+    # Convert to grayscale
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # Start timing
+    start = time.time()
+
+    # Simulate GPU task using TensorFlow (dummy blur operation)
+    img_tensor = tf.convert_to_tensor(gray, dtype=tf.float32)
+    img_tensor = tf.reshape(img_tensor, [1, 480, 640, 1])
+    kernel = tf.constant([[1/9.]*3]*3, dtype=tf.float32, shape=[3, 3, 1, 1])
+    blurred = tf.nn.conv2d(img_tensor, kernel, strides=[1,1,1,1], padding='SAME')
+    blurred_np = blurred.numpy().squeeze()
+
+    # End timing
+    end = time.time()
+    elapsed = (end - start) * 1000  # in ms
+
+    # Display
+    cv2.imshow("Real-time Blurred (Simulated GPU)", blurred_np.astype(np.uint8))
+    cv2.putText(frame, f"Processing Time: {elapsed:.2f} ms", (10, 30),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+    cv2.imshow("Original", frame)
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+Run the script:
+python3 realtime_gpu_filter.py
+Press q to quit the video stream.
+
+Step 2: Compare CPU vs GPU Performance (Optional)
+To compare, disable the TensorFlow GPU device in code:
+tf.config.set_visible_devices([], 'GPU')  # Forces CPU usage
+Measure and note the Processing Time overlay on video frame
+
+Re-enable GPU and compare time differences
+
+Conclusion
+In this lab, you:
+
+Set up a deep learning environment using TensorFlow and OpenCV
+
+Captured webcam video and processed frames in real time
+
+Used TensorFlow operations to simulate GPU-based processing
+
+Benchmarked and compared GPU vs CPU performance (if GPU available)
+
+This lab demonstrates the value of hardware acceleration in real-time applications — completely offline on your Ubuntu machine.
