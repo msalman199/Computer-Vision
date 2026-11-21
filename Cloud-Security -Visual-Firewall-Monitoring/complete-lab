@@ -1,0 +1,76 @@
+Lab 9: Cloud Security – Visual Firewall Monitoring
+Objective
+Capture network traffic using Wireshark, convert the data into structured format (e.g., CSV), and use Python visualization and computer vision techniques to highlight potential security threats — all offline on your Ubuntu system.
+
+Prerequisites
+Start your Al Nafi-provided Ubuntu machine
+Install tools:
+sudo apt update
+sudo apt install wireshark tshark -y
+pip install pandas matplotlib opencv-python
+During Wireshark setup, if prompted, allow non-root users to capture packets:
+
+sudo usermod -aG wireshark $USER
+newgrp wireshark
+Steps
+Step 1: Capture Network Traffic with Wireshark or tshark
+Start Wireshark GUI:
+wireshark
+Or use tshark CLI for faster, scriptable capture:
+tshark -i any -a duration:30 -w capture.pcapng
+This captures 30 seconds of traffic and saves it to capture.pcapng.
+
+Step 2: Convert pcap to CSV
+Use tshark to extract essential packet data:
+
+tshark -r capture.pcapng -T fields -e frame.number -e ip.src -e ip.dst -e frame.len -e _ws.col.Protocol -E header=y -E separator=, -E quote=d -E occurrence=f > traffic.csv
+Now you have a structured traffic.csv with key fields.
+
+Step 3: Visualize Network Traffic
+Create a Python script visualize_traffic.py:
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("traffic.csv")
+
+# Drop rows with missing IPs
+df = df.dropna(subset=["ip.src", "ip.dst"])
+
+# Count number of packets per source IP
+top_sources = df['ip.src'].value_counts().head(10)
+
+plt.figure(figsize=(10, 5))
+top_sources.plot(kind='bar', color='skyblue')
+plt.title("Top 10 Source IPs by Packet Count")
+plt.xlabel("Source IP")
+plt.ylabel("Packets")
+plt.tight_layout()
+plt.savefig("traffic_bar_chart.png")
+plt.show()
+Run the script:
+python3 visualize_traffic.py
+You’ll get a bar chart highlighting the busiest source IPs.
+
+Step 4: Highlight Suspicious Activity (e.g., Flooding)
+Extend the script to flag possible anomalies:
+
+suspicious = top_sources[top_sources > 100]
+if not suspicious.empty:
+    print("\n⚠️  Potential Threats Detected:")
+    print(suspicious)
+else:
+    print("\n✅  No suspicious IPs found.")
+You can also use OpenCV for custom rendering of heatmaps or visual overlays if desired.
+
+Conclusion
+In this lab, you:
+
+Captured real network traffic with Wireshark or tshark
+
+Converted .pcapng to structured CSV format
+
+Visualized network behavior and flagged abnormal patterns using Python
+
+Simulated firewall-level anomaly detection — entirely offline
+
+This lab gives you a strong foundation in using visual tools to monitor and secure network activity in real-time — without needing cloud services.
